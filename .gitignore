@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+_pis.js
+_analyze.js
+_probe*.js
+server/data/
+*.db
+*.db-*
