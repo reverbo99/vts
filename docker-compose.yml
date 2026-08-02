@@ -7,19 +7,20 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      MYSQL_HOST: mysql
+      # Must NOT be "mysql" — opticedge_mysql already uses that alias on the shared network
+      MYSQL_HOST: vts_mysql
       MYSQL_PORT: 3306
       PORT: 8787
       CLIENT_DIST: /app/client/dist
     depends_on:
-      mysql:
+      vts_mysql:
         condition: service_healthy
     networks:
       - vts_net
       - opticedge_opticedge_network
     # No host ports — reach only via opticedge_nginx reverse proxy
 
-  mysql:
+  vts_mysql:
     image: mysql:8.0
     container_name: vts_mysql
     restart: unless-stopped
