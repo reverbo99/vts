@@ -17,6 +17,8 @@ type Props = {
   filter: "all" | "moving" | "overspeed" | "idle";
   onFilter: (f: Props["filter"]) => void;
   onBusAdded?: (plate: string) => void;
+  addOpen?: boolean;
+  onToggleAdd?: () => void;
 };
 
 export function FleetSidebar({
@@ -28,6 +30,8 @@ export function FleetSidebar({
   filter,
   onFilter,
   onBusAdded,
+  addOpen = true,
+  onToggleAdd,
 }: Props) {
   const filtered = vehicles.filter((v) => {
     if (query && !v.plate.toLowerCase().includes(query.toLowerCase())) return false;
@@ -100,13 +104,32 @@ export function FleetSidebar({
         )}
       </ul>
 
-      <AddBusPanel onAdded={onBusAdded} />
-
-      <div className="legend">
-        <span><i className="swatch moving" /> Moving</span>
-        <span><i className="swatch idle" /> Idle</span>
-        <span><i className="swatch overspeed" /> Over {">"}80</span>
-        <span><i className="swatch stale" /> Stale</span>
+      <div className="sidebar-foot">
+        <button
+          type="button"
+          className="add-toggle"
+          aria-expanded={addOpen}
+          onClick={onToggleAdd}
+        >
+          {addOpen ? "Hide add bus" : "Add bus"}
+        </button>
+        <div className={addOpen ? "add-bus-wrap is-open" : "add-bus-wrap"}>
+          <AddBusPanel onAdded={onBusAdded} />
+        </div>
+        <div className="legend">
+          <span>
+            <i className="swatch moving" /> Moving
+          </span>
+          <span>
+            <i className="swatch idle" /> Idle
+          </span>
+          <span>
+            <i className="swatch overspeed" /> Over {">"}80
+          </span>
+          <span>
+            <i className="swatch stale" /> Stale
+          </span>
+        </div>
       </div>
     </aside>
   );

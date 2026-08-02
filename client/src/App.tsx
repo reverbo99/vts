@@ -14,6 +14,7 @@ export default function App() {
     "all"
   );
   const [historyPlate, setHistoryPlate] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const selected = useMemo(
     () => vehicles.find((v) => v.plate === selectedPlate) || null,
@@ -35,14 +36,14 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <img src="/bus.svg" alt="" width={36} height={36} />
+          <img src="/bus.svg" alt="" width={32} height={32} />
           <div>
             <h1>Tilisho Fleet Live</h1>
             <p>LATRA VTS · OpenStreetMap · live WebSocket</p>
           </div>
         </div>
 
-        <div className="stats">
+        <div className="stats" aria-label="Fleet summary">
           <div className="stat">
             <span>Fleet</span>
             <strong>{stats.total}</strong>
@@ -86,6 +87,8 @@ export default function App() {
           filter={filter}
           onFilter={setFilter}
           onBusAdded={(plate) => setSelectedPlate(plate)}
+          addOpen={addOpen}
+          onToggleAdd={() => setAddOpen((v) => !v)}
         />
 
         <section className="map-pane">
