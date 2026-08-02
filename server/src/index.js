@@ -1,4 +1,5 @@
 import "dotenv/config";
+import fs from "fs";
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -21,6 +22,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8787);
 const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS || 8000);
 const fleetPath = path.join(__dirname, "..", "fleet.txt");
+const clientDist =
+  process.env.CLIENT_DIST || path.join(__dirname, "..", "..", "client", "dist");
 
 const app = express();
 app.use(cors());
@@ -212,6 +215,14 @@ app.get("/api/history/:plate/csv", async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
+
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist, { index: false }));
+  app.get(/^(?!\/api(?:\/|$)|\/ws(?:\/|$)).*/, (_req, res) => {
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+  console.log(`[static] serving client from ${clientDist}`);
+}
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: "/ws" });

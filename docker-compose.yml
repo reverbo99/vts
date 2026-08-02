@@ -1,0 +1,57 @@
+name: vts
+
+services:
+  app:
+    build: .
+    container_name: vts_app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      PORT: 8787
+      CLIENT_DIST: /app/client/dist
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - vts_net
+      - opticedge_opticedge_network
+    # No host ports — reach only via opticedge_nginx reverse proxy
+
+  mysql:
+    image: mysql:8.0
+    container_name: vts_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-vts_change_me}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vts}
+    volumes:
+      - vts_mysql_data:/var/lib/mysql
+    networks:
+      - vts_net
+    # Not published on the host — keeps OpticEdge MySQL untouched
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "127.0.0.1",
+          "-uroot",
+          "-p${MYSQL_PASSWORD:-vts_change_me}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+volumes:
+  vts_mysql_data:
+
+networks:
+  vts_net:
+    driver: bridge
+  opticedge_opticedge_network:
+    external: true
