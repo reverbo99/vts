@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchHistory, toApiWallClock } from "../lib/api";
+import { snapTrackToRoads, type TrackPoint } from "../lib/mapMatch";
 
-export type TrackPoint = [number, number];
+export type { TrackPoint };
 
 const TRACK_HOURS = 6;
 
@@ -10,12 +11,14 @@ export function useBusTrack(plate: string | null) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [count, setCount] = useState(0);
+  const [snapped, setSnapped] = useState(false);
 
   useEffect(() => {
     if (!plate) {
       setPoints([]);
       setError(null);
       setCount(0);
+      setSnapped(false);
       setLoading(false);
       return;
     }
@@ -28,6 +31,7 @@ export function useBusTrack(plate: string | null) {
       setError(null);
       setPoints([]);
       setCount(0);
+      setSnapped(false);
 
       const end = new Date();
       const start = new Date(end.getTime() - TRACK_HOURS * 60 * 60 * 1000);
@@ -41,22 +45,38 @@ export function useBusTrack(plate: string | null) {
         );
         if (cancelled) return;
 
-        const pts: TrackPoint[] = [];
+        const raw: TrackPoint[] = [];
         for (const row of data.rows) {
           if (row.latitude == null || row.longitude == null) continue;
-          pts.push([row.latitude, row.longitude]);
+          raw.push([row.latitude, row.longitude]);
         }
 
-        setPoints(pts);
-        setCount(data.count);
-        if (data.latraError && pts.length === 0) {
-          setError(data.latraError);
+        setCount(raw.length);
+
+        if (raw.length < 2) {
+          setPoints(raw);
+          if (data.latraError && raw.length === 0) {
+            setError(data.latraError);
+          }
+          return;
         }
+
+        // Show raw trail immediately, then replace with road-snapped path
+        setPoints(raw);
+
+        const { points: road, snapped: ok } = await snapTrackToRoads(
+          raw,
+          controller.signal
+        );
+        if (cancelled) return;
+        setPoints(road);
+        setSnapped(ok);
       } catch (err) {
         if (cancelled || (err as Error).name === "AbortError") return;
         setError((err as Error).message || "Failed to load track");
         setPoints([]);
         setCount(0);
+        setSnapped(false);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -70,5 +90,5 @@ export function useBusTrack(plate: string | null) {
     };
   }, [plate]);
 
-  return { points, loading, error, count, hours: TRACK_HOURS };
+  return { points, loading, error, count, hours: TRACK_HOURS, snapped };
 }

@@ -143,6 +143,7 @@ type DetailProps = {
   trackCount?: number;
   trackHours?: number;
   trackError?: string | null;
+  trackSnapped?: boolean;
 };
 
 export function SelectedDetail({
@@ -153,6 +154,7 @@ export function SelectedDetail({
   trackCount = 0,
   trackHours = 6,
   trackError = null,
+  trackSnapped = false,
 }: DetailProps) {
   if (!vehicle) return null;
 
@@ -162,7 +164,7 @@ export function SelectedDetail({
     : trackError && trackCount === 0
       ? `Track unavailable · ${trackError}`
       : trackCount > 0
-        ? `Track · last ${trackHours}h · ${trackCount} points`
+        ? `Track · last ${trackHours}h · ${trackCount} GPS${trackSnapped ? " · on road" : ""}`
         : `No track points in last ${trackHours}h`;
 
   return (

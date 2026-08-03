@@ -107,9 +107,10 @@ export default function App() {
                 onHistory={(plate) => setHistoryPlate(plate)}
                 onClose={() => setSelectedPlate(null)}
                 trackLoading={track.loading}
-                trackCount={track.points.length}
+                trackCount={track.count}
                 trackHours={track.hours}
                 trackError={track.error}
+                trackSnapped={track.snapped}
               />
             </div>
           )}
