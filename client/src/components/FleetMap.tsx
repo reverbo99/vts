@@ -4,9 +4,12 @@ import {
   TileLayer,
   Marker,
   Popup,
+  Polyline,
   useMap,
 } from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
 import type { Vehicle } from "../types";
+import type { TrackPoint } from "../hooks/useBusTrack";
 import { createBusIcon } from "../lib/markers";
 import { formatRelative, formatSpeed, statusTone } from "../lib/fleet";
 import { SPEED_LIMIT_KMH } from "../types";
@@ -15,9 +18,18 @@ type Props = {
   vehicles: Vehicle[];
   selectedPlate: string | null;
   onSelect: (plate: string) => void;
+  trackPoints?: TrackPoint[];
 };
 
-function FitFleet({ vehicles, selectedPlate }: { vehicles: Vehicle[]; selectedPlate: string | null }) {
+function FitFleet({
+  vehicles,
+  selectedPlate,
+  trackPoints,
+}: {
+  vehicles: Vehicle[];
+  selectedPlate: string | null;
+  trackPoints: TrackPoint[];
+}) {
   const map = useMap();
 
   useEffect(() => {
@@ -63,14 +75,26 @@ function FitFleet({ vehicles, selectedPlate }: { vehicles: Vehicle[]; selectedPl
     }
   }, [selectedPlate]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (trackPoints.length < 2) return;
+    map.fitBounds(trackPoints, { padding: [56, 56], maxZoom: 15, animate: true });
+  }, [map, trackPoints]);
+
   return null;
 }
 
-export function FleetMap({ vehicles, selectedPlate, onSelect }: Props) {
+export function FleetMap({
+  vehicles,
+  selectedPlate,
+  onSelect,
+  trackPoints = [],
+}: Props) {
   const online = useMemo(
     () => vehicles.filter((v) => v.latitude != null && v.longitude != null),
     [vehicles]
   );
+
+  const path = trackPoints as LatLngExpression[];
 
   return (
     <MapContainer
@@ -84,7 +108,23 @@ export function FleetMap({ vehicles, selectedPlate, onSelect }: Props) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <FitFleet vehicles={online} selectedPlate={selectedPlate} />
+      <FitFleet
+        vehicles={online}
+        selectedPlate={selectedPlate}
+        trackPoints={trackPoints}
+      />
+      {path.length >= 2 && (
+        <Polyline
+          positions={path}
+          pathOptions={{
+            color: "#3D7EFF",
+            weight: 4,
+            opacity: 0.85,
+            lineJoin: "round",
+            lineCap: "round",
+          }}
+        />
+      )}
       {online.map((v) => (
         <Marker
           key={v.plate}

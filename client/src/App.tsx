@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { FleetMap } from "./components/FleetMap";
 import { FleetSidebar, SelectedDetail } from "./components/FleetSidebar";
 import { HistoryModal } from "./components/HistoryModal";
+import { useBusTrack } from "./hooks/useBusTrack";
 import { useFleetSocket } from "./hooks/useFleetSocket";
 import { formatRelative, isMoving, isOverspeed, isStale } from "./lib/fleet";
 import "./App.css";
@@ -15,6 +16,7 @@ export default function App() {
   );
   const [historyPlate, setHistoryPlate] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const track = useBusTrack(selectedPlate);
 
   const selected = useMemo(
     () => vehicles.find((v) => v.plate === selectedPlate) || null,
@@ -96,6 +98,7 @@ export default function App() {
             vehicles={vehicles}
             selectedPlate={selectedPlate}
             onSelect={setSelectedPlate}
+            trackPoints={track.points}
           />
           {selected && (
             <div className="detail-dock">
@@ -103,6 +106,10 @@ export default function App() {
                 vehicle={selected}
                 onHistory={(plate) => setHistoryPlate(plate)}
                 onClose={() => setSelectedPlate(null)}
+                trackLoading={track.loading}
+                trackCount={track.points.length}
+                trackHours={track.hours}
+                trackError={track.error}
               />
             </div>
           )}

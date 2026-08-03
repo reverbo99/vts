@@ -139,12 +139,31 @@ type DetailProps = {
   vehicle: Vehicle | null;
   onHistory?: (plate: string) => void;
   onClose?: () => void;
+  trackLoading?: boolean;
+  trackCount?: number;
+  trackHours?: number;
+  trackError?: string | null;
 };
 
-export function SelectedDetail({ vehicle, onHistory, onClose }: DetailProps) {
+export function SelectedDetail({
+  vehicle,
+  onHistory,
+  onClose,
+  trackLoading = false,
+  trackCount = 0,
+  trackHours = 6,
+  trackError = null,
+}: DetailProps) {
   if (!vehicle) return null;
 
   const tone = statusTone(vehicle);
+  const trackLabel = trackLoading
+    ? `Loading last ${trackHours}h track…`
+    : trackError && trackCount === 0
+      ? `Track unavailable · ${trackError}`
+      : trackCount > 0
+        ? `Track · last ${trackHours}h · ${trackCount} points`
+        : `No track points in last ${trackHours}h`;
 
   return (
     <div className="detail">
@@ -196,6 +215,9 @@ export function SelectedDetail({ vehicle, onHistory, onClose }: DetailProps) {
       </div>
 
       <p className="detail-loc">{vehicle.location || "—"}</p>
+      <p className={`muted tiny track-status${trackLoading ? " is-loading" : ""}`}>
+        {trackLabel}
+      </p>
       <p className="muted tiny">
         {vehicle.latitude?.toFixed(5)}, {vehicle.longitude?.toFixed(5)}
         {vehicle.event ? ` · ${vehicle.event}` : ""}

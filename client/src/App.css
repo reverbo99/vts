@@ -744,6 +744,25 @@
   font-size: 0.92rem;
 }
 
+.track-status {
+  color: #8eb6ff;
+}
+
+.track-status.is-loading {
+  color: var(--muted);
+  animation: pulse-soft 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .bus-marker {
   background: transparent !important;
   border: none !important;

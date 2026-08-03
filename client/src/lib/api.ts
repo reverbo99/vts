@@ -48,10 +48,21 @@ export type HistoryResponse = {
   rows: HistoryRow[];
 };
 
-export async function fetchHistory(plate: string, from: string, to: string) {
+export function toApiWallClock(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+export async function fetchHistory(
+  plate: string,
+  from: string,
+  to: string,
+  signal?: AbortSignal
+) {
   const qs = new URLSearchParams({ from, to, refresh: "1" });
   const res = await fetch(
-    `${API_BASE}/api/history/${encodeURIComponent(plate)}?${qs}`
+    `${API_BASE}/api/history/${encodeURIComponent(plate)}?${qs}`,
+    { signal }
   );
   return parseJson(res) as Promise<HistoryResponse>;
 }
